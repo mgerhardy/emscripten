@@ -269,6 +269,14 @@ var HEAP_DATA_VIEW;
 var HEAP64;
 #endif
 
+#if USE_PTHREADS
+if (ENVIRONMENT_IS_PTHREAD) {
+  // Grab imports from the pthread to local scope.
+  buffer = Module['buffer'];
+  // Note that not all runtime fields are imported above
+}
+#endif
+
 function updateGlobalBufferAndViews(buf) {
   buffer = buf;
 #if SUPPORT_BIG_ENDIAN
@@ -288,7 +296,7 @@ function updateGlobalBufferAndViews(buf) {
 }
 
 #if RELOCATABLE
-var __stack_pointer = new WebAssembly.Global({value: 'i32', mutable: true}, {{{ STACK_BASE }}});
+var __stack_pointer = new WebAssembly.Global({'value': 'i32', 'mutable': true}, {{{ STACK_BASE }}});
 
 // To support such allocations during startup, track them on __heap_base and
 // then when the main module is loaded it reads that value and uses it to
@@ -977,10 +985,6 @@ function createWasm() {
     addOnInit(Module['asm']['__wasm_call_ctors']);
 #endif
 
-#if USE_PTHREADS
-    PThread.tlsInitFunctions.push(Module['asm']['emscripten_tls_init']);
-#endif
-
 #if ABORT_ON_WASM_EXCEPTIONS
     instrumentWasmTableWithAbort();
 #endif
@@ -991,6 +995,7 @@ function createWasm() {
     exportAsmFunctions(exports);
 #endif
 #if USE_PTHREADS
+    PThread.tlsInitFunctions.push(Module['asm']['emscripten_tls_init']);
     // We now have the Wasm module loaded up, keep a reference to the compiled module so we can post it to the workers.
     wasmModule = module;
     // Instantiation is synchronous in pthreads and we assert on run dependencies.

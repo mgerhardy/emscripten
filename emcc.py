@@ -1413,14 +1413,14 @@ There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR P
       shared.Settings.RELOCATABLE = 1
 
     if shared.Settings.RELOCATABLE:
+      shared.Settings.EXPORTED_FUNCTIONS += ['_setThrew']
       shared.Settings.DEFAULT_LIBRARY_FUNCS_TO_INCLUDE += [
           '$reportUndefinedSymbols',
           '$relocateExports',
           '$GOTHandler',
           '$getDylinkMetadata',
+          '$dynCall',
       ]
-      if options.use_closure_compiler:
-        exit_with_error('cannot use closure compiler on shared modules')
       if shared.Settings.MINIMAL_RUNTIME:
         exit_with_error('MINIMAL_RUNTIME is not compatible with relocatable output')
       if shared.Settings.WASM2JS:

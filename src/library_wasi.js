@@ -76,7 +76,7 @@ var WasiLibrary = {
 
   args_sizes_get__sig: 'iii',
   args_sizes_get: function(pargc, pargv_buf_size) {
-#if MAIN_READS_PARAMS
+#if MAIN_READS_PARAMS && STANDALONE_WASM
     {{{ makeSetValue('pargc', 0, 'mainArgs.length', 'i32') }}};
     var bufSize = 0;
     mainArgs.forEach(function(arg) {
@@ -94,7 +94,7 @@ var WasiLibrary = {
   args_get__deps: ['$writeAsciiToMemory'],
 #endif
   args_get: function(argv, argv_buf) {
-#if MAIN_READS_PARAMS
+#if MAIN_READS_PARAMS && STANDALONE_WASM
     var bufSize = 0;
     mainArgs.forEach(function(arg, i) {
       var ptr = argv_buf + bufSize;
