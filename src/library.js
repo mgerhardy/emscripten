@@ -3304,12 +3304,10 @@ LibraryManager.library = {
       return x.indexOf('dynCall_') == 0 || unmangledSymbols.indexOf(x) != -1 ? x : '_' + x;
     };
 
-#if ENVIRONMENT_MAY_BE_NODE
-#if ENVIRONMENT_MAY_BE_WEB
+#if ENVIRONMENT_MAY_BE_NODE && ENVIRONMENT_MAY_BE_WEB
     var global_object = (typeof process !== "undefined" ? global : this);
-#else
+#elif ENVIRONMENT_MAY_BE_NODE
     var global_object = global;
-#endif
 #else
     var global_object = this;
 #endif
