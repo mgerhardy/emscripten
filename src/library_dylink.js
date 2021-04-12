@@ -5,6 +5,10 @@
 
 var LibraryDylink = {
 #if RELOCATABLE
+  $isMangled: function(x) {
+    return x.indexOf('dynCall_') == 0 || x[0] == '_';
+  },
+
   $asmjsMangle: function(x) {
     var unmangledSymbols = {{{ buildStringArray(WASM_SYSTEM_EXPORTS) }}};
     return x.indexOf('dynCall_') == 0 || unmangledSymbols.indexOf(x) != -1 ? x : '_' + x;
@@ -220,6 +224,7 @@ var LibraryDylink = {
   // Dynamic version of shared.py:make_invoke.  This is needed for invokes
   // that originate from side modules since these are not known at JS
   // generation time.
+  $createInvokeFunction__deps: ['$dynCall'],
   $createInvokeFunction: function(sig) {
     return function() {
       var sp = stackSave();
@@ -363,7 +368,7 @@ var LibraryDylink = {
 
   // Loads a side module from binary data or compiled Module. Returns the module's exports or a
   // promise that resolves to its exports if the loadAsync flag is set.
-  $loadWebAssemblyModule__deps: ['$loadDynamicLibrary', '$createInvokeFunction', '$getMemory', '$relocateExports', '$resolveGlobalSymbol', '$GOTHandler', '$getDylinkMetadata'],
+  $loadWebAssemblyModule__deps: ['$loadDynamicLibrary', '$createInvokeFunction', '$getMemory', '$relocateExports', '$resolveGlobalSymbol', '$GOTHandler', '$getDylinkMetadata', '$isMangled'],
   $loadWebAssemblyModule: function(binary, flags) {
     var metadata = getDylinkMetadata(binary);
 #if ASSERTIONS
@@ -426,9 +431,10 @@ var LibraryDylink = {
         return resolved;
       }
 
-      // copy currently exported symbols so the new module can import them
+      // Copy currently exported symbols so the new module can import them
+      // Only copy native symbols (mangled symbols).
       for (var x in Module) {
-        if (!(x in env)) {
+        if (!(x in env) && isMangled(x)) {
           env[x] = Module[x];
         }
       }
